@@ -9,7 +9,7 @@ def create_task():
     request_body = request.get_json()
     title = request_body["title"]
     description = request_body["description"]
-    completed_at = request_body["completed_at"]
+    completed_at = request_body["is_complete"]
 
     new_task = Task(title=title, description=description, completed_at=completed_at)
     db.session.add(new_task)
@@ -19,6 +19,6 @@ def create_task():
         "id": new_task.id,
         "title": new_task.title,
         "description": new_task.description,
-        "completed_at": completed_at
+        "is_complete": completed_at
     }
     return response, 201
