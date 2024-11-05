@@ -22,3 +22,20 @@ def create_task():
         "is_complete": completed_at
     }
     return response, 201
+
+@tasks_bp.get("")
+def get_all_tasks():
+    query = db.select(Task).order_by(Task.id)
+    tasks = db.session.scalars(query)
+
+    tasks_response = []
+    for task in tasks:
+        tasks_response.append(
+            {
+                "id": task.id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": task.completed_at
+            }
+        )
+    return tasks_response
