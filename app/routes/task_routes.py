@@ -20,8 +20,17 @@ def create_task():
 
 @tasks_bp.get("")
 def get_all_tasks():
-    query = db.select(Task).order_by(Task.id)
-    tasks = db.session.scalars(query)
+    query = db.select(Task)
+
+    title_param = request.args.get("title")
+    if title_param:
+        query = query.where(Task.title.ilike(f"%{title_param}%"))
+
+    description_param = request.args.get("description")
+    if description_param:
+        query = query.where(Task.description.ilike(f"%{description_param}%"))
+
+    tasks = db.session.scalars(query.order_by(Task.id))
 
     tasks_response = [task.to_dict() for task in tasks]
     return tasks_response
