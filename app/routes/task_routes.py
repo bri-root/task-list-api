@@ -39,3 +39,16 @@ def get_all_tasks():
             }
         )
     return tasks_response
+
+
+@tasks_bp.get("/<task_id>")
+def get_one_task(task_id):
+    query = db.select(Task).where(Task.id == task_id)
+    task = db.session.scalar(query)
+
+    return {
+        "id": task.id,
+        "title": task.title,
+        "description": task.description, 
+        "is_complete": task.completed_at
+    }
