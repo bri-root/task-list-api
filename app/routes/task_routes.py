@@ -33,7 +33,14 @@ def get_all_tasks():
     if description_param:
         query = query.where(Task.description.ilike(f"%{description_param}%"))
 
-    tasks = db.session.scalars(query.order_by(Task.id))
+    sort_param = request.args.get("sort")
+    if sort_param == "desc":
+        query = query.order_by(Task.title.desc())
+    else:
+        query = query.order_by(Task.title.asc())
+    
+
+    tasks = db.session.scalars(query.order_by(Task.title))
 
     tasks_response = [task.to_dict() for task in tasks]
     return tasks_response
