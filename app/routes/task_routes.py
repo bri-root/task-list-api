@@ -79,3 +79,11 @@ def update_task(task_id):
     db.session.commit()
 
     return Response(status=204, mimetype="application/json")
+
+@tasks_bp.delete("/<task_id>")
+def delete_task(task_id):
+    task = validate_task(task_id)
+    db.session.delete(task)
+    db.session.commit()
+
+    return Response(status=204, mimetype="application/json")
