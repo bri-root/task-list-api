@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, make_response, request
+from flask import Blueprint, abort, make_response, request, Response
 from app.models.task import Task
 from ..db import db
 
@@ -67,3 +67,15 @@ def validate_task(task_id):
         abort(make_response(response, 404))
 
     return task
+
+@tasks_bp.put("/<task_id>")
+def update_task(task_id):
+    task = validate_task(task_id)
+    request_body = request.get_json()
+
+    task.title = request_body["title"]
+    task.description = request_body["description"]
+    task.completed_at = request_body["is_complete"]
+    db.session.commit()
+
+    return Response(status=204, mimetype="application/json")
