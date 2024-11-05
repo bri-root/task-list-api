@@ -43,8 +43,7 @@ def get_all_tasks():
 
 @tasks_bp.get("/<task_id>")
 def get_one_task(task_id):
-    query = db.select(Task).where(Task.id == task_id)
-    task = db.session.scalar(query)
+    task = validate_task(task_id)
 
     return {
         "id": task.id,
@@ -52,3 +51,19 @@ def get_one_task(task_id):
         "description": task.description, 
         "is_complete": task.completed_at
     }
+
+def validate_task(task_id):
+    try:
+        task_id = int(task_id)
+    except:
+        response = {"message": f"task {task_id} invalid"}
+        abort(make_response(response , 400))
+
+    query = db.select(Task).where(Task.id == task_id)
+    task = db.session.scalar(query)
+    
+    if not task:
+        response = {"message": f"task {task_id} not found"}
+        abort(make_response(response, 404))
+
+    return task
