@@ -26,3 +26,9 @@ class Task(db.Model):
             description=task_data["description"],
             completed_at=completed_at
         )
+    
+    def mark_complete(self):
+        self.completed_at = datetime.now()
+
+    def mark_incomplete(self):
+        self.completed_at = None
