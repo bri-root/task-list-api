@@ -63,15 +63,8 @@ def update_task(task_id):
 
     db.session.commit()
 
-    response_body = {
-        "task": {
-            "id": task.id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": task.completed_at is not None
-        }
-    }
-    return response_body
+    response_body = {"task":task.to_dict()}
+    return response_body, 200
 
 @tasks_bp.delete("/<task_id>")
 def delete_task(task_id):
