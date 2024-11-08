@@ -2,9 +2,16 @@ from flask import Blueprint, abort, make_response, request, Response
 from app.models.task import Task
 from ..db import db
 from datetime import datetime
-
+import requests
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
+
+# slack URL
+SLACK_API_URL = os.environ.get('SLACK_API_URL')
+SLACK_API_TOKEN = os.environ.get('SLACK_API_TOCKEN')
 
 @tasks_bp.post("")
 def create_task():
@@ -81,7 +88,9 @@ def mark_complete(task_id):
     
     task.mark_complete()  
     db.session.commit()
-    
+
+    post_to_slack(task)
+
     return {"task": task.to_dict()}, 200
 
 
@@ -110,3 +119,24 @@ def validate_task(task_id):
         response = {"message": "task not found"}
         abort(make_response(response, 404))
     return task
+
+def post_to_slack(task):
+    headers = {
+        "Authorization": f"Bearer {SLACK_API_TOKEN}",
+        "Content-Type": "application/json",
+
+    }
+    if task.completed_at:
+        data = {
+            "text": f"Task '{task.title}' has been marked complete",
+            "channel": "C080MLHBX5W",
+        }
+    else:
+        data = {
+            "text": f"Task '{task.title}' has been marked incomplete",
+            "channel": "C080MLHBX5W",
+        }
+
+    r = requests.post(SLACK_API_URL, headers=headers, json=data)
+
+    return r
