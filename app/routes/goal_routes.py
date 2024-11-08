@@ -1,5 +1,6 @@
 from flask import Blueprint, request, abort, make_response
 from app.models.goal import Goal
+from app.routes.task_routes import validate_task
 from ..db import db
 from app.models.task import Task
 
@@ -76,51 +77,31 @@ def delete_goal(goal_id):
     return response_body
 
 @goals_bp.post("/<goal_id>/tasks")
-def create_task_with_goal_id(goal_id):
+def add_tasks_tp_goal(goal_id):
     goal = validate_goal(goal_id)
-
     request_body = request.get_json()
-    request_body["goal_id"] = goal.id
-    
-    try:
-        new_task = Task.from_dict(request_body)
-    
-    except KeyError as e:
-        response = {"details": "Invalid data"}
-        abort(make_response(response, 400))
+    task_ids = request_body["task_ids"]
 
-    db.session.add(new_task)
+    for task_id in task_ids:
+        task = validate_task(task_id)
+        goal.tasks.append(task)
+
     db.session.commit()
-    response_body = {
-        "id": goal.id,
-        "title": goal.title,
-        "tasks": [
-            {
-                "id": new_task.id,
-                "goal_id": new_task.goal_id,
-                "title": new_task.title,
-                "description": new_task.description,
-                "is_complete": new_task.is_complete
-            }
-        ]
-    }
 
-    return response_body, 201
+    response = {
+        "id": goal.id,
+        "task_ids": task_ids,
+    }
+    
+    return response
+
 
 @goals_bp.get("/<goal_id>/tasks")
 def get_tasks_by_goal(goal_id):
     goal = validate_goal(goal_id)
-    response_body = {
-        "id": goal.id,
-        "title": goal.title,
-        "tasks": [task.to_dict() for task in goal.tasks] 
-    }
-
-    return response_body
-
-# def get_tasks_by_goal(goal_id):
-#     goal = validate_goal(goal_id)
-#     response = [task.to_dict() for task in goal.tasks]
-#     print(goal.tasks)
-    # return response
-
+    tasks = [task.to_dict() for task in goal.tasks]
+    
+    response = goal.to_dict()
+    response["tasks"] = tasks
+    
+    return response

@@ -21,6 +21,7 @@ class Task(db.Model):
             "title":self.title,
             "description":self.description,
             "is_complete":self.completed_at is not None,
+            "goal_id": self.goal_id,
             "goal":self.goal.title if self.goal else None
         }
 
