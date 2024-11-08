@@ -52,3 +52,15 @@ def validate_goal(goal_id):
         response = {"message": "goal not found"}
         abort(make_response(response, 404))
     return goal
+
+@goals_bp.put("/<goal_id>")
+def update_goal(goal_id):
+    goal = validate_goal(goal_id)
+    request_body = request.get_json()
+
+    goal.title = request_body["title"]
+
+    db.session.commit()
+
+    response_body = {"goal": goal.to_dict()}
+    return response_body, 200
