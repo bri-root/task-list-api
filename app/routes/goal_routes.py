@@ -18,3 +18,16 @@ def create_goal():
     db.session.commit()
 
     return {"goal":new_goal.to_dict()}, 201
+
+@goals_bp.get("")
+def get_all_goals():
+    query = db.select(Goal)
+
+    title_param = request.args.get("title")
+    if title_param:
+        query = query.where(Goal.title.ilike(f"%({title_param}%"))
+
+    goals = db.session.scalars(query.order_by(Goal.id))
+    goals_response = [goal.to_dict() for goal in goals]
+
+    return goals_response
