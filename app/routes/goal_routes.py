@@ -64,3 +64,12 @@ def update_goal(goal_id):
 
     response_body = {"goal": goal.to_dict()}
     return response_body, 200
+
+@goals_bp.delete("/<goal_id>")
+def delete_goal(goal_id):
+    goal = validate_goal(goal_id)
+    db.session.delete(goal)
+    db.session.commit()
+
+    response_body = {"details": f'Goal {goal_id} "{goal.title}" successfully deleted'}
+    return response_body
