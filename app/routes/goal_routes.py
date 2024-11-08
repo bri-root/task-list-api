@@ -31,3 +31,24 @@ def get_all_goals():
     goals_response = [goal.to_dict() for goal in goals]
 
     return goals_response
+
+@goals_bp.get("/<goal_id>")
+def get_one_goal(goal_id):
+    goal = validate_goal(goal_id)
+
+    return {"goal": goal.to_dict()}, 200
+
+def validate_goal(goal_id):
+    try:
+        goal_id = int(goal_id)
+    except:
+        response = {"message": f"goal {goal_id} invalid"}
+        abort(make_response(response , 400))
+
+    query = db.select(Goal).where(Goal.id == goal_id)
+    goal = db.session.scalar(query)
+    
+    if not goal:
+        response = {"message": "goal not found"}
+        abort(make_response(response, 404))
+    return goal
