@@ -1,6 +1,7 @@
 from flask import Blueprint, request, abort, make_response
 from app.models.goal import Goal
 from ..db import db
+from app.models.task import Task
 
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
 
@@ -73,3 +74,53 @@ def delete_goal(goal_id):
 
     response_body = {"details": f'Goal {goal_id} "{goal.title}" successfully deleted'}
     return response_body
+
+@goals_bp.post("/<goal_id>/tasks")
+def create_task_with_goal_id(goal_id):
+    goal = validate_goal(goal_id)
+
+    request_body = request.get_json()
+    request_body["goal_id"] = goal.id
+    
+    try:
+        new_task = Task.from_dict(request_body)
+    
+    except KeyError as e:
+        response = {"details": "Invalid data"}
+        abort(make_response(response, 400))
+
+    db.session.add(new_task)
+    db.session.commit()
+    response_body = {
+        "id": goal.id,
+        "title": goal.title,
+        "tasks": [
+            {
+                "id": new_task.id,
+                "goal_id": new_task.goal_id,
+                "title": new_task.title,
+                "description": new_task.description,
+                "is_complete": new_task.is_complete
+            }
+        ]
+    }
+
+    return response_body, 201
+
+@goals_bp.get("/<goal_id>/tasks")
+def get_tasks_by_goal(goal_id):
+    goal = validate_goal(goal_id)
+    response_body = {
+        "id": goal.id,
+        "title": goal.title,
+        "tasks": [task.to_dict() for task in goal.tasks] 
+    }
+
+    return response_body
+
+# def get_tasks_by_goal(goal_id):
+#     goal = validate_goal(goal_id)
+#     response = [task.to_dict() for task in goal.tasks]
+#     print(goal.tasks)
+    # return response
+
